@@ -92,7 +92,7 @@ npm start
 ## Structure du projet
 Voici une vue d'ensemble de la structure de fichiers du projet :
 ```
-apple-clone/
+pomme/
 │
 ├── backend/                 # Backend NodeJS avec ExpressJS
 │   ├── controllers/         # Logique de gestion des requêtes API
@@ -105,9 +105,10 @@ apple-clone/
 │   └── public/              # Fichiers publics (index.html, images, etc.)
 │
 ├── sql/                     # Scripts SQL pour la création de la base de données
-│   └── apple_clone.sql      # Fichier SQL pour créer les tables de la base de données
+│   └── pomme.sql            # Fichier SQL pour créer les tables de la base de données
 │
 └── README.md                # Ce fichier
+
 ```
 
 ## Auteurs
