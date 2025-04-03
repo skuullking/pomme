@@ -1,0 +1,7 @@
+{
+  "/api/iphones/route": "app/api/iphones/route.js",
+  "/checkout/page": "app/checkout/page.js",
+  "/models/iphone-16/page": "app/models/iphone-16/page.js",
+  "/page": "app/page.js",
+  "/compare/page": "app/compare/page.js"
+}
