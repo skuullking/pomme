@@ -332,7 +332,7 @@ function PhoneCard({ model, totalPhones }: { model: PhoneModel; totalPhones: num
       <h2 className={`${totalPhones === 2 ? "text-3xl" : "text-2xl"} font-semibold mb-2`}>{model.name}</h2>
 
       {/* Sélecteur de couleurs */}
-      <ColorSelector colors={model.colors} selectedColor={selectedColor} onChange={setSelectedColor} />
+      <ColorSelector colors={model.colors.split(",")} selectedColor={selectedColor} onChange={setSelectedColor} />
 
       {/* Sélecteur de stockage */}
       <StorageSelector

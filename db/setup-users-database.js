@@ -1,3 +1,6 @@
+// Ajouter cette ligne au début du fichier pour charger les variables d'environnement
+import "dotenv/config"
+
 // This is a script to set up your users database
 // You would run this once to create your tables
 

@@ -1,51 +1,126 @@
 import { NextResponse } from "next/server"
-import { sql } from "@vercel/postgres"
+import bcrypt from "bcryptjs"
+import { query } from "@/lib/db"
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    // Récupérer les données du corps de la requête
+    const body = await request.json()
+    const { email, password } = body
 
-    // Vérifier si la base de données est disponible
-    if (!process.env.POSTGRES_URL && !process.env.DATABASE_URL) {
-      // Si pas de base de données, simuler une connexion réussie pour la démo
-      if (email === "demo@example.com" && password === "password") {
-        return NextResponse.json({
-          id: "demo-user",
-          email: "demo@example.com",
-          first_name: "Utilisateur",
-          last_name: "Démo",
-        })
-      } else {
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
+    console.log("Tentative de connexion:", { email })
+
+    // Valider les données
+    if (!email || !password) {
+      console.log("Validation échouée: email ou mot de passe manquant")
+      return NextResponse.json({ success: false, error: "Email et mot de passe requis" }, { status: 400 })
+    }
+
+    try {
+      // Vérifier si la table users existe
+      try {
+        await query("SELECT 1 FROM users LIMIT 1")
+      } catch (tableError) {
+        console.log("La table users n'existe pas ou n'est pas accessible")
+
+        // Mode fallback pour la démo
+        if (email === "demo@example.com" && password === "password123") {
+          console.log("Connexion en mode fallback réussie pour:", email)
+          return NextResponse.json({
+            success: true,
+            user: {
+              id: "demo-fallback",
+              email: "demo@example.com",
+              firstName: "Demo",
+              lastName: "User",
+            },
+          })
+        }
+
+        return NextResponse.json({ success: false, error: "Utilisateur non trouvé" }, { status: 401 })
       }
+
+      // Récupérer l'utilisateur
+      const result = await query("SELECT * FROM users WHERE email = $1", [email])
+
+      if (result.rows.length === 0) {
+        console.log("Utilisateur non trouvé:", email)
+
+        // Mode fallback pour la démo
+        if (email === "demo@example.com" && password === "password123") {
+          console.log("Connexion en mode fallback réussie pour:", email)
+          return NextResponse.json({
+            success: true,
+            user: {
+              id: "demo-fallback",
+              email: "demo@example.com",
+              firstName: "Demo",
+              lastName: "User",
+            },
+          })
+        }
+
+        return NextResponse.json({ success: false, error: "Utilisateur non trouvé" }, { status: 401 })
+      }
+
+      const user = result.rows[0]
+
+      // Vérifier le mot de passe
+      const isMatch = await bcrypt.compare(password, user.password)
+
+      if (!isMatch) {
+        console.log("Mot de passe incorrect pour:", email)
+        return NextResponse.json({ success: false, error: "Mot de passe incorrect" }, { status: 401 })
+      }
+
+      console.log("Connexion réussie pour:", email)
+
+      // Retourner l'utilisateur connecté (sans le mot de passe)
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+        },
+      })
+    } catch (dbError) {
+      console.error("Erreur de base de données lors de la connexion:", dbError)
+
+      // Mode fallback pour la démo
+      if (email === "demo@example.com" && password === "password123") {
+        console.log("Connexion en mode fallback réussie pour:", email)
+        return NextResponse.json({
+          success: true,
+          user: {
+            id: "demo-fallback",
+            email: "demo@example.com",
+            firstName: "Demo",
+            lastName: "User",
+          },
+        })
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Erreur de base de données lors de la connexion",
+          details: dbError instanceof Error ? dbError.message : "Erreur inconnue",
+        },
+        { status: 500 },
+      )
     }
-
-    // Si la base de données est disponible, procéder normalement
-    const { rows } = await sql`
-      SELECT * FROM users 
-      WHERE email = ${email} 
-      LIMIT 1
-    `
-
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    }
-
-    const user = rows[0]
-
-    // In a real app, you would use a proper password comparison
-    // For demo purposes, we'll do a simple check
-    if (user.password !== password) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    }
-
-    // Don't send the password back to the client
-    const { password: _, ...userWithoutPassword } = user
-
-    return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ error: "An error occurred during login" }, { status: 500 })
+    console.error("Erreur lors du traitement de la requête de connexion:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Erreur lors du traitement de la requête",
+        details: error instanceof Error ? error.message : "Erreur inconnue",
+      },
+      { status: 500 },
+    )
   }
 }
 

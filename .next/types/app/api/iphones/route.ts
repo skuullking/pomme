@@ -1,4 +1,4 @@
-// File: /Applications/MAMP/htdocs/pomme/app/api/iphones/route.ts
+// File: C:\Users\nija1\Downloads\apple-iphone-comparator\app\api\iphones\route.ts
 import * as entry from '../../../../../app/api/iphones/route.js'
 import type { NextRequest } from 'next/server.js'
 

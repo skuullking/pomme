@@ -1,3 +1,5 @@
+import "dotenv/config"
+
 // This is a script to set up your database
 // You would run this once to create your tables and insert data
 

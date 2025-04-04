@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import type { PhoneModel } from "@/types/phone"
+import { sql } from "@vercel/postgres"
 
 // Détection du mode prévisualisation
 const isPreview =
@@ -21,8 +22,7 @@ export async function GET() {
 
     // Uniquement tenter de se connecter à la base de données si nous ne sommes pas en mode prévisualisation
     try {
-      // Import dynamique pour éviter les erreurs en mode prévisualisation
-      const { sql } = await import("@vercel/postgres")
+      console.log("Tentative de connexion à la base de données...")
 
       const { rows } = await sql<PhoneModel>`
         SELECT * FROM iphones 
